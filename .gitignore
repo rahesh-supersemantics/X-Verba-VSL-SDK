@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# X-Verba local runtime data
+*.ledger.jsonl
+*.checkpoint.json
+
+# Git temporary files
+*.lock.stale-delete-me

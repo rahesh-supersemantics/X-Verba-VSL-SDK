@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://supersemantics.example/vsl/schema/vsl-policy-v1.json",
+  "title": "X-Verba VSL SDK policy (schema_version 1)",
+  "description": "Declarative policy configuration. Describes configuration only: no executable logic. Monitors and rules are referenced by registered name. Assurance LEVELS cannot be set; only the F1/F2 facts are accepted and VSL-Core derives the level.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "agent", "policy", "assurance_bases", "terminal_states", "actions"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "identity_key": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "$ref": "#/$defs/identifier" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    },
+    "assurance_bases": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/identifier" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["f1_pre_commitment", "f2_modification"],
+        "properties": {
+          "f1_pre_commitment": { "type": "boolean" },
+          "f2_modification": { "enum": ["FULL", "PARTIAL", "INDIRECT", "NONE"] }
+        }
+      }
+    },
+    "terminal_states": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "$ref": "#/$defs/identifier" },
+          "description": { "type": "string", "minLength": 1 },
+          "entry_conditions": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "prenodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description", "monitor", "assurance_basis", "fallback"],
+        "properties": {
+          "name": { "$ref": "#/$defs/identifier" },
+          "description": { "type": "string", "minLength": 1 },
+          "monitor": { "$ref": "#/$defs/identifier" },
+          "params": { "$ref": "#/$defs/params" },
+          "assurance_basis": { "$ref": "#/$defs/identifier" },
+          "gamma_threshold": { "type": "number", "exclusiveMinimum": 0 },
+          "fallback": { "enum": ["human_review"] }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description", "rule", "assurance_basis", "on_violation"],
+        "properties": {
+          "name": { "$ref": "#/$defs/identifier" },
+          "description": { "type": "string", "minLength": 1 },
+          "rule": { "$ref": "#/$defs/identifier" },
+          "params": { "$ref": "#/$defs/params" },
+          "assurance_basis": { "$ref": "#/$defs/identifier" },
+          "on_violation": { "$ref": "#/$defs/identifier" }
+        }
+      }
+    },
+    "actions": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/identifier" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "prenodes": {
+            "type": "array",
+            "maxItems": 1,
+            "items": { "$ref": "#/$defs/identifier" }
+          },
+          "invariants": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/identifier" }
+          }
+        }
+      }
+    },
+    "ledger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["backend"],
+      "properties": {
+        "backend": { "enum": ["jsonl", "remote", "memory"] },
+        "path": { "type": "string", "minLength": 1 },
+        "fsync": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "maxLength": 128
+    },
+    "params": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+      "additionalProperties": {
+        "type": ["string", "number", "boolean"]
+      }
+    }
+  }
+}

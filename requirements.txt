@@ -1,0 +1,9 @@
+pytest
+pytest-asyncio
+pyyaml>=6
+jsonschema>=4.18
+# VSL-Core (import name: vsl_core) is installed from git, see pyproject.toml.
+# Optional, only for remote ledgers (install the client with --no-deps if its
+# own dependency pins conflict):
+#   httpx>=0.27
+#   vsl-core-ledger-client @ git+https://github.com/supersemantics/VSL-Core-ledger-client.git

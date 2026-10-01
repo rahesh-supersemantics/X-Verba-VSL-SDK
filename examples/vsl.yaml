@@ -1,0 +1,55 @@
+# vsl.yaml -- example policy (schema_version 1).
+#
+# Equivalent to governance/policy.py (the expense agent), except that the
+# built-in max_value rule checks only the amount, not the currency.
+schema_version: 1
+
+agent:
+  name: expense-agent
+
+policy:
+  name: expense-policy
+  version: "1.0.0"
+
+# F1/F2 FACTS only. The assurance LEVEL is derived by VSL-Core and cannot
+# be set here.
+assurance_bases:
+  output_layer:
+    f1_pre_commitment: true
+    f2_modification: NONE
+
+terminal_states:
+  - name: expense-approvals-suspended
+    description: Automated expense approval halted. Human re-enablement required.
+    entry_conditions: ["expense-cap violated"]
+
+prenodes:
+  - name: approval-confidence
+    description: Model confidence must clear the robust Gamma threshold.
+    monitor: confidence_gamma
+    params:
+      decision_threshold: ${DECISION_THRESHOLD:-0.50}
+      calibration_error: 0.10
+    assurance_basis: output_layer
+    gamma_threshold: 1.1
+    fallback: human_review
+
+invariants:
+  - name: expense-cap
+    description: No expense above the cap is ever auto-approved.
+    rule: max_value
+    params:
+      field: amount
+      max: ${EXPENSE_CAP_NZD:-2000}
+    assurance_basis: output_layer
+    on_violation: expense-approvals-suspended
+
+actions:
+  approve_expense:
+    prenodes: [approval-confidence]
+    invariants: [expense-cap]
+
+ledger:
+  backend: jsonl
+  path: ${VSL_LEDGER_PATH:-data/ledger.jsonl}
+  fsync: true

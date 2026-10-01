@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "super-semantics-vsl-sdk"
+version = "0.1.0"
+description = "X-Verba VSL SDK: a thin developer-experience layer above VSL-Core."
+requires-python = ">=3.10"
+dependencies = [
+    # Same unpinned direct-URL form the VSL adapters use (guide 28.2).
+    # Pin the SDK, not Core.
+    "super-semantics-vsl @ git+https://github.com/supersemantics/VSL-Core.git",
+    "pyyaml>=6",
+    "jsonschema>=4.18",
+]
+
+[project.optional-dependencies]
+remote-ledger = [
+    "httpx>=0.27",
+    "vsl-core-ledger-client @ git+https://github.com/supersemantics/VSL-Core-ledger-client.git",
+]
+dev = ["pytest", "pytest-asyncio"]
+
+[project.scripts]
+vsl = "vsl.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["vsl*"]
+
+[tool.setuptools.package-data]
+"vsl.config" = ["schema.json"]
