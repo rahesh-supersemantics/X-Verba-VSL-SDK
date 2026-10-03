@@ -220,6 +220,29 @@ __marimo__/
 # X-Verba local runtime data
 *.ledger.jsonl
 *.checkpoint.json
+*.jsonl.lock
+/data/
 
 # Git temporary files
 *.lock.stale-delete-me
+
+# Environment files with local settings or secrets (a committed
+# template named .env.example stays tracked)
+.env.*
+!.env.example
+
+# Private keys and certificates
+*.pem
+*.key
+
+# IDE / editor local state
+.idea/
+.vscode/
+
+# X-Verba Scan generated output (its .verba/governance.yaml config is
+# source and stays tracked)
+.verba/governance-report.*
+.verba/governance-history/
+
+# Test run reports
+junit.xml

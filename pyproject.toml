@@ -16,11 +16,26 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Framework integration. LangGraph is never a core dependency; the adapter
+# in vsl.integrations.langgraph does not import it, it only returns plain
+# async node functions. Tested with langgraph 1.2.12.
+langgraph = ["langgraph>=1.2,<2"]
+# vsl.integrations.langchain needs LangChain's create_agent middleware (1.x).
+# Tested with langchain 1.4.3.
+langchain = ["langchain>=1.0,<2"]
+# vsl.integrations.maf needs the Microsoft Agent Framework's function
+# middleware. Tested with agent-framework 1.19.0.
+maf = ["agent-framework>=1.19,<2"]
+# `vsl scan` runs the separate X-Verba Scan tool (command: x-verba). It is
+# not on PyPI, so it is installed from git. Tested with x-verba 0.6.0.
+scan = ["x-verba @ git+https://github.com/supersemantics/X-verba-CLI.git"]
 remote-ledger = [
     "httpx>=0.27",
     "vsl-core-ledger-client @ git+https://github.com/supersemantics/VSL-Core-ledger-client.git",
 ]
-dev = ["pytest", "pytest-asyncio"]
+# vsl.testing.contract and vsl.testing.pytest_plugin need pytest.
+testing = ["pytest>=8"]
+dev = ["pytest>=8", "pytest-asyncio"]
 
 [project.scripts]
 vsl = "vsl.cli:main"

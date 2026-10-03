@@ -1,8 +1,9 @@
-"""Command line: ``vsl verify | audit | certify``.
+"""Command line: ``vsl verify | audit | certify | scan``.
 
     vsl verify  --ledger FILE [--checkpoint FILE] [--write-checkpoint FILE]
     vsl audit   --ledger FILE [--max-monitor-gap SECONDS]
     vsl certify --ledger FILE --max-monitor-gap SECONDS [--checkpoint FILE]
+    vsl scan    [ARGS...]     runs ``x-verba scan ARGS...`` (optional extra)
 
 Exit status
 -----------
@@ -13,6 +14,9 @@ Exit status
    checkpoint file, refusing to overwrite a checkpoint
 3  the ledger could not be read: missing, malformed or structurally
    invalid
+
+``vsl scan`` returns the exit status of ``x-verba scan`` unchanged, or 127
+if the ``x-verba`` executable is not installed.
 
 The CLI only reads the ledger. It never creates, repairs or rewrites
 ledger files. It is a thin wrapper over the SDK and VSL-Core calls
@@ -45,6 +49,7 @@ EXIT_OK = 0
 EXIT_FAILED = 1
 EXIT_USAGE = 2
 EXIT_LEDGER = 3
+EXIT_SCAN_UNAVAILABLE = 127
 
 FIVE_CHECKS = (
     "no_monitoring_gaps",
@@ -139,6 +144,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--checkpoint",
         metavar="FILE",
         help="also require a match against an anchored checkpoint",
+    )
+
+    commands.add_parser(
+        "scan",
+        help="run X-Verba Scan ('x-verba scan ARGS...'); all arguments "
+        "after 'scan' are passed to it unchanged",
     )
 
     return parser
@@ -343,11 +354,29 @@ _COMMANDS = {
 # =====================================================================
 
 
+def _scan(args: Sequence[str]) -> int:
+    from .integrations.scan import ScannerNotFoundError, run_scan
+
+    try:
+        return run_scan(args)
+
+    except ScannerNotFoundError as exc:
+        _err(f"error: {exc}")
+        return EXIT_SCAN_UNAVAILABLE
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    arguments = list(sys.argv[1:] if argv is None else argv)
+
+    # ``scan`` forwards everything after it to the scanner, so it is
+    # handled before argparse can interpret those arguments.
+    if arguments and arguments[0] == "scan":
+        return _scan(arguments[1:])
+
     parser = build_parser()
 
     try:
-        args = parser.parse_args(argv)
+        args = parser.parse_args(arguments)
 
     except SystemExit as exc:
         code = exc.code
